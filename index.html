@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investor Update Drafter | cosmik.work</title>
+<meta name="description" content="Raw metrics and bullets in, a polished investor update out, with a numeric sanity check built in. Growth, runway, and headcount change are computed in code, never guessed by the AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0a0f;
+  --ink-2:#12121e;
+  --card:#151426;
+  --card-2:#0a0a15;
+  --text:#f5f5f7;
+  --text-2:#a1a1aa;
+  --accent:#7c5cff;
+  --accent-bright:#a78bfa;
+  --line:rgba(167,139,250,.16);
+  --ok:#5cd6a3;
+  --warn:#f6c177;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:'Inter Tight',sans-serif;
+  line-height:1.6;
+  min-height:100vh;
+  /* subtle static star sprinkle, no canvas needed */
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(245,245,247,.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 12%, rgba(245,245,247,.25) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 60% 68%, rgba(167,139,250,.4) 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 82%, rgba(245,245,247,.3) 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 50%, rgba(245,245,247,.2) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 45% 35%, rgba(245,245,247,.25) 50%, transparent 51%);
+}
+main{max-width:860px;margin:0 auto;padding:56px 24px 96px;}
+
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent-bright);margin-bottom:14px;
+}
+h1{
+  font-family:'Fraunces',serif;
+  font-size:clamp(2.2rem,5.5vw,3.4rem);
+  font-weight:500;letter-spacing:-.02em;line-height:1.1;
+}
+h1 em{font-style:italic;color:var(--accent-bright);}
+.sub{color:var(--text-2);max-width:56ch;margin-top:16px;font-size:1.02rem;}
+
+.input-wrap{margin-top:44px;}
+
+.field-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.field label{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
+  margin-bottom:8px;
+}
+.field input{
+  width:100%;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card-2) 100%);
+  border:1px solid var(--line);border-radius:12px;
+  color:var(--text);font-family:'Inter Tight',sans-serif;font-size:1rem;
+  padding:13px 16px;outline:none;
+  transition:border-color .3s var(--ease);
+}
+.field input:focus{border-color:rgba(167,139,250,.5);}
+.field input::placeholder{color:#55555f;}
+
+.field-full{margin-top:20px;}
+.field-full label{
+  display:block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
+  margin-bottom:8px;
+}
+textarea{
+  width:100%;min-height:120px;resize:vertical;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card-2) 100%);
+  border:1px solid var(--line);border-radius:18px;
+  color:var(--text);font-family:'Inter Tight',sans-serif;font-size:.98rem;line-height:1.6;
+  padding:18px 20px;outline:none;
+  transition:border-color .3s var(--ease);
+}
+textarea:focus{border-color:rgba(167,139,250,.5);}
+textarea::placeholder{color:#55555f;}
+
+.tone-toggle{
+  margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;
+}
+.tone-btn{
+  font-family:'Inter Tight',sans-serif;font-size:.9rem;font-weight:500;
+  background:transparent;color:var(--text-2);
+  border:1px solid var(--line);border-radius:999px;
+  padding:11px 22px;cursor:pointer;
+  transition:border-color .3s var(--ease),background .3s var(--ease),color .3s var(--ease);
+}
+.tone-btn:hover{border-color:rgba(167,139,250,.4);}
+.tone-btn.tone-active{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+
+.input-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:24px;flex-wrap:wrap;
+}
+.privacy-note{
+  font-size:.82rem;color:var(--text-2);max-width:48ch;
+}
+.privacy-note strong{color:var(--accent-bright);font-weight:500;}
+button.generate{
+  font-family:'Inter Tight',sans-serif;font-size:.95rem;font-weight:500;
+  background:var(--accent);color:#fff;border:none;border-radius:999px;
+  padding:13px 30px;cursor:pointer;
+  transition:background .3s var(--ease),transform .3s var(--ease);
+  white-space:nowrap;
+}
+button.generate:hover{background:#6a4be0;transform:translateY(-1px);}
+button.generate:disabled{background:#3a3550;cursor:not-allowed;transform:none;}
+
+.status{
+  margin-top:28px;font-family:'JetBrains Mono',monospace;font-size:.82rem;
+  color:var(--text-2);display:none;align-items:center;gap:10px;
+}
+.status.visible{display:flex;}
+.pulse{
+  width:8px;height:8px;border-radius:50%;background:var(--accent-bright);
+  animation:pulse 1.4s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+@media(prefers-reduced-motion:reduce){.pulse{animation:none;opacity:1;}}
+.status.error{color:#ff8a8a;}
+.status.error .pulse{background:#ff8a8a;animation:none;}
+
+/* ===== the update itself ~ rendered like a crisp investor memo ===== */
+#update{display:none;margin-top:52px;}
+#update.visible{display:block;}
+.update-doc{
+  background:linear-gradient(180deg,var(--card) 0%,var(--card-2) 100%);
+  border:1px solid var(--line);border-radius:24px;overflow:hidden;
+  box-shadow:0 24px 60px -30px rgba(124,92,255,.35);
+}
+.update-band{
+  padding:26px 32px;border-bottom:1px solid var(--line);
+  background:rgba(124,92,255,.07);
+}
+.update-band .label{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent-bright);margin-bottom:8px;
+}
+.update-band .title{
+  font-family:'Fraunces',serif;font-size:1.5rem;font-weight:500;
+  letter-spacing:-.01em;line-height:1.3;
+}
+.update-section{padding:26px 32px;border-bottom:1px solid var(--line);}
+.update-section:last-of-type{border-bottom:none;}
+.update-section h2{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:500;margin-bottom:16px;color:var(--accent-bright);
+}
+.update-section.s-ask h2{color:var(--ok);}
+.update-body p{margin-bottom:14px;font-size:1rem;}
+.update-body p:last-child{margin-bottom:0;}
+
+.figures-box{
+  margin-top:16px;padding:18px 22px;border-radius:14px;
+  border:1px dashed rgba(167,139,250,.3);
+  font-size:.85rem;color:var(--text-2);
+}
+.figures-box .fb-title{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent-bright);margin-bottom:10px;
+}
+.figures-box p{
+  margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-size:.85rem;
+  color:var(--text);
+}
+.figures-box p:last-child{margin-bottom:0;}
+
+.update-actions{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;}
+.btn-ghost{
+  font-family:'Inter Tight',sans-serif;font-size:.88rem;font-weight:500;
+  background:transparent;color:var(--accent-bright);
+  border:1px solid rgba(167,139,250,.35);border-radius:999px;
+  padding:10px 22px;cursor:pointer;
+  transition:border-color .3s var(--ease),background .3s var(--ease);
+}
+.btn-ghost:hover{border-color:var(--accent-bright);background:rgba(124,92,255,.08);}
+
+footer{
+  max-width:860px;margin:0 auto;padding:0 24px 48px;
+  font-size:.82rem;color:var(--text-2);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+footer a{color:var(--accent-bright);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+:focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px;}
+
+@media(max-width:640px){
+  .update-band,.update-section{padding:20px 20px;}
+  .field-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<main>
+  <p class="eyebrow">cosmik.work · 07 · Founder Ops</p>
+  <h1>Real numbers, <em>never guessed.</em></h1>
+  <p class="sub">Raw metrics and bullets in, a polished investor update out. Growth, runway, and headcount change are computed in plain code before the AI ever sees them, then dropped into the draft as fixed values it cannot rewrite.</p>
+
+  <div class="input-wrap">
+    <div class="field-grid">
+      <div class="field">
+        <label for="currentMRR">Current MRR ($)</label>
+        <input type="number" id="currentMRR" min="0" step="any" placeholder="52000">
+      </div>
+      <div class="field">
+        <label for="previousMRR">Previous MRR ($)</label>
+        <input type="number" id="previousMRR" min="0" step="any" placeholder="45000">
+      </div>
+      <div class="field">
+        <label for="cashInBank">Cash in bank ($)</label>
+        <input type="number" id="cashInBank" min="0" step="any" placeholder="180000">
+      </div>
+      <div class="field">
+        <label for="monthlyBurn">Monthly burn ($)</label>
+        <input type="number" id="monthlyBurn" min="0" step="any" placeholder="22000">
+      </div>
+      <div class="field">
+        <label for="currentHeadcount">Current headcount (optional)</label>
+        <input type="number" id="currentHeadcount" min="0" step="1" placeholder="15">
+      </div>
+      <div class="field">
+        <label for="previousHeadcount">Previous headcount (optional)</label>
+        <input type="number" id="previousHeadcount" min="0" step="1" placeholder="12">
+      </div>
+    </div>
+
+    <div class="field-full">
+      <label for="wins">Key wins/updates this period</label>
+      <textarea id="wins" placeholder="Closed the Acme enterprise deal, shipped the v2 onboarding flow, hired a senior engineer, churn dropped after the pricing change..."></textarea>
+    </div>
+
+    <div class="field-full">
+      <label for="ask">Ask for investors (optional)</label>
+      <textarea id="ask" placeholder="Intros to enterprise security buyers, help closing the Series A lead, a referral for a senior sales hire..."></textarea>
+    </div>
+
+    <div class="tone-toggle" role="group" aria-label="Tone">
+      <button type="button" class="tone-btn tone-active" id="toneFormal" aria-pressed="true">Formal (data room)</button>
+      <button type="button" class="tone-btn" id="toneCasual" aria-pressed="false">Casual (founder update)</button>
+    </div>
+
+    <div class="input-foot">
+      <p class="privacy-note"><strong>Privacy guardrail:</strong> emails and phone numbers are stripped from your text on the server before anything reaches the AI. Nothing you paste is stored beyond the generated update.</p>
+      <button class="generate" id="go">Generate update</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"><span class="pulse"></span><span id="statusText">Working…</span></div>
+
+  <section id="update" aria-live="polite">
+    <div class="update-doc">
+      <div class="update-band">
+        <p class="label" id="updateEyebrow">Investor Update</p>
+        <p class="title" id="updateTitle"></p>
+      </div>
+      <div class="update-section s-body">
+        <h2>Update</h2>
+        <div class="update-body" id="updateBody"></div>
+      </div>
+      <div class="update-section s-ask">
+        <h2>The ask</h2>
+        <div class="update-body" id="updateAsk"></div>
+      </div>
+    </div>
+
+    <div class="figures-box" id="figuresBox">
+      <p class="fb-title">Verified figures · computed in code, not by the AI</p>
+      <div id="figuresList"></div>
+    </div>
+
+    <div class="update-actions">
+      <button class="btn-ghost" id="copyBtn">Copy as text</button>
+      <button class="btn-ghost" id="againBtn">Start over</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>Built by <a href="https://cosmik.work" target="_blank" rel="noopener">Soumik Chatterjee · cosmik.work</a></span>
+  <span><a href="https://github.com/pymikofficial/investor-update-drafter" target="_blank" rel="noopener">Source on GitHub</a></span>
+</footer>
+
+<script>
+(function(){
+  const go = document.getElementById('go');
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  const updateEl = document.getElementById('update');
+
+  const fields = ['currentMRR', 'previousMRR', 'cashInBank', 'monthlyBurn', 'currentHeadcount', 'previousHeadcount'];
+  const winsEl = document.getElementById('wins');
+  const askEl = document.getElementById('ask');
+  const toneFormalBtn = document.getElementById('toneFormal');
+  const toneCasualBtn = document.getElementById('toneCasual');
+
+  const POLL_MS = 2000;
+  const MAX_POLLS = 45; // ~90s ceiling
+
+  let tone = 'formal';
+  let lastUpdateText = '';
+
+  toneFormalBtn.addEventListener('click', () => setTone('formal'));
+  toneCasualBtn.addEventListener('click', () => setTone('casual'));
+  function setTone(t){
+    tone = t;
+    toneFormalBtn.classList.toggle('tone-active', t === 'formal');
+    toneFormalBtn.setAttribute('aria-pressed', String(t === 'formal'));
+    toneCasualBtn.classList.toggle('tone-active', t === 'casual');
+    toneCasualBtn.setAttribute('aria-pressed', String(t === 'casual'));
+  }
+
+  go.addEventListener('click', start);
+  document.getElementById('againBtn').addEventListener('click', () => {
+    updateEl.classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(lastUpdateText);
+      const b = document.getElementById('copyBtn');
+      const t = b.textContent;
+      b.textContent = 'Copied ✓';
+      setTimeout(() => { b.textContent = t; }, 1500);
+    } catch (e) {}
+  });
+
+  async function start(){
+    const values = {};
+    fields.forEach((f) => { values[f] = document.getElementById(f).value; });
+    const wins = winsEl.value.trim();
+    const ask = askEl.value.trim();
+
+    if (!wins || values.currentMRR === '' || values.previousMRR === '' || values.cashInBank === '' || values.monthlyBurn === '') {
+      setStatus('Current MRR, previous MRR, cash in bank, monthly burn, and wins are all required.', true);
+      return;
+    }
+
+    const jobId = (crypto.randomUUID ? crypto.randomUUID()
+      : 'job-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+
+    go.disabled = true;
+    updateEl.classList.remove('visible');
+    setStatus('Crunching the numbers and drafting your update…', false);
+
+    try {
+      await fetch('/.netlify/functions/generate-update-background', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobId,
+          currentMRR: values.currentMRR,
+          previousMRR: values.previousMRR,
+          cashInBank: values.cashInBank,
+          monthlyBurn: values.monthlyBurn,
+          currentHeadcount: values.currentHeadcount,
+          previousHeadcount: values.previousHeadcount,
+          wins,
+          ask,
+          tone
+        })
+      });
+    } catch (e) {
+      return fail('Could not reach the server. Check your connection and try again.');
+    }
+
+    let polls = 0;
+    const timer = setInterval(async () => {
+      polls++;
+      if (polls > MAX_POLLS) {
+        clearInterval(timer);
+        return fail('Timed out. The server may be busy ~ try again in a minute.');
+      }
+
+      try {
+        const res = await fetch('/.netlify/functions/check-update?jobId=' + encodeURIComponent(jobId));
+        const data = await res.json();
+        if (data.status === 'done') {
+          clearInterval(timer);
+          render(data);
+        } else if (data.status === 'error') {
+          clearInterval(timer);
+          fail(data.message || 'Generation failed.');
+        }
+      } catch (e) { /* transient poll failure, keep going */ }
+    }, POLL_MS);
+  }
+
+  function setStatus(msg, isError){
+    statusEl.classList.add('visible');
+    statusEl.classList.toggle('error', !!isError);
+    statusText.textContent = msg;
+    if (isError) go.disabled = false;
+  }
+  function fail(msg){
+    setStatus(msg, true);
+  }
+
+  function render(data){
+    const u = data.update || {};
+    const fig = data.verifiedFigures || {};
+    statusEl.classList.remove('visible');
+    go.disabled = false;
+
+    document.getElementById('updateEyebrow').textContent =
+      'Investor Update · ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + (u.tone_used === 'casual' ? 'Casual' : 'Formal');
+    document.getElementById('updateTitle').textContent = u.title || '';
+
+    const bodyEl = document.getElementById('updateBody');
+    bodyEl.innerHTML = '';
+    (u.body_paragraphs || []).forEach((p) => {
+      const el = document.createElement('p');
+      el.textContent = p;
+      bodyEl.appendChild(el);
+    });
+
+    const askBodyEl = document.getElementById('updateAsk');
+    askBodyEl.innerHTML = '';
+    const askP = document.createElement('p');
+    askP.textContent = u.ask_paragraph || '';
+    askBodyEl.appendChild(askP);
+
+    renderFigures(fig);
+
+    lastUpdateText = toPlainText(u, fig);
+    updateEl.classList.add('visible');
+    updateEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderFigures(fig){
+    const listEl = document.getElementById('figuresList');
+    listEl.innerHTML = '';
+    const lines = [];
+    lines.push('Growth: (' + money(fig.currentMRR) + ' - ' + money(fig.previousMRR) + ') / ' + money(fig.previousMRR) + ' = ' + fig.growthPct + '%');
+    lines.push('Runway: ' + money(fig.cashInBank) + ' / ' + money(fig.monthlyBurn) + ' = ' + fig.runwayMonths + ' months');
+    if (fig.headcountChange !== null && fig.headcountChange !== undefined) {
+      const prevHc = document.getElementById('previousHeadcount').value;
+      const curHc = document.getElementById('currentHeadcount').value;
+      lines.push('Headcount: ' + prevHc + ' -> ' + curHc + ' (' + (fig.headcountChange > 0 ? '+' : '') + fig.headcountChange + ')');
+    }
+    lines.forEach((l) => {
+      const p = document.createElement('p');
+      p.textContent = l;
+      listEl.appendChild(p);
+    });
+  }
+
+  function money(n){
+    return Number(n).toLocaleString('en-US');
+  }
+
+  function toPlainText(u, fig){
+    const lines = [u.title || 'INVESTOR UPDATE', ''];
+    (u.body_paragraphs || []).forEach((p) => lines.push(p, ''));
+    lines.push('THE ASK', u.ask_paragraph || '', '');
+    lines.push('VERIFIED FIGURES');
+    lines.push('Growth: ' + fig.growthPct + '%');
+    lines.push('Runway: ' + fig.runwayMonths + ' months');
+    if (fig.headcountChange !== null && fig.headcountChange !== undefined) {
+      lines.push('Headcount change: ' + (fig.headcountChange > 0 ? '+' : '') + fig.headcountChange);
+    }
+    return lines.join('\n');
+  }
+})();
+</script>
+
+</body>
+</html>

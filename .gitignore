@@ -1,0 +1,5 @@
+# Local Netlify folder
+.netlify
+
+# Local Claude Code permissions (embeds secrets in allow-listed commands, never public)
+.claude/

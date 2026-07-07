@@ -1,0 +1,9 @@
+{
+  "name": "investor-update-drafter",
+  "version": "1.0.0",
+  "description": "Raw metrics and bullets in, a polished investor update out, with a numeric sanity check built in. Built by Soumik Chatterjee / cosmik.work.",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
