@@ -25,7 +25,36 @@ const BLOBS_CONFIG = {
 };
 
 const DAILY_CAP = 25; // guardrail: public tool, keep API spend bounded
+const DAILY_CAP_PER_IP = 8;
 const MAX_TEXT_CHARS = 4000; // wins/ask are short by nature, unlike a raw notes dump
+
+function clientIp(event) {
+  return (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+}
+
+// Netlify Blobs has no conditional/compare-and-swap write, so a true atomic
+// increment isn't possible here. This narrows (does not eliminate) the race
+// window between the check and the write.
+async function checkAndBumpUsage(limitStore, key, cap) {
+  const read = async () => {
+    try {
+      const existing = await limitStore.get(key);
+      return existing ? parseInt(existing, 10) : 0;
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  if ((await read()) >= cap) return false;
+
+  await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 120)));
+
+  const count = await read();
+  if (count >= cap) return false;
+
+  await limitStore.set(key, String(count + 1));
+  return true;
+}
 
 exports.handler = async (event) => {
   const store = getStore({ name: 'investor-updates', ...BLOBS_CONFIG });
@@ -33,7 +62,8 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    jobId = body.jobId;
+    const jobIdRaw = (body.jobId || '').toString();
+    jobId = /^[a-zA-Z0-9-]{1,64}$/.test(jobIdRaw) ? jobIdRaw : null;
 
     if (!jobId) {
       return; // nothing sensible to do; client will time out and show an error
@@ -65,25 +95,28 @@ exports.handler = async (event) => {
 
     await store.setJSON(jobId, { status: 'pending' });
 
-    // --- Guardrail 1: daily rate limit via a Blob counter ---
+    // --- Guardrail 1: daily rate limit via a Blob counter, global and per-IP ---
     const today = new Date().toISOString().slice(0, 10);
     const limitStore = getStore({ name: 'rate-limits', ...BLOBS_CONFIG });
     const counterKey = `updates-${today}`;
-    let count = 0;
-    try {
-      const existing = await limitStore.get(counterKey);
-      count = existing ? parseInt(existing, 10) : 0;
-    } catch (e) {
-      count = 0;
-    }
-    if (count >= DAILY_CAP) {
+    const ipCounterKey = `updates-${today}-ip-${clientIp(event)}`;
+
+    const globalOk = await checkAndBumpUsage(limitStore, counterKey, DAILY_CAP);
+    if (!globalOk) {
       await store.setJSON(jobId, {
         status: 'error',
         message: "Today's free generation limit has been reached. Come back tomorrow."
       });
       return;
     }
-    await limitStore.set(counterKey, String(count + 1));
+    const ipOk = await checkAndBumpUsage(limitStore, ipCounterKey, DAILY_CAP_PER_IP);
+    if (!ipOk) {
+      await store.setJSON(jobId, {
+        status: 'error',
+        message: "You've hit today's per-user generation limit. Come back tomorrow."
+      });
+      return;
+    }
 
     // --- Guardrail 2: division-by-zero, before anything else touches these numbers ---
     if (previousMRR === 0) {

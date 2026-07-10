@@ -8,10 +8,12 @@ const BLOBS_CONFIG = {
   token: process.env.NETLIFY_BLOBS_TOKEN
 };
 
+const JOB_ID_RE = /^[a-zA-Z0-9-]{1,64}$/;
+
 exports.handler = async (event) => {
   const jobId = (event.queryStringParameters || {}).jobId;
-  if (!jobId) {
-    return json(400, { status: 'error', message: 'Missing jobId.' });
+  if (!jobId || !JOB_ID_RE.test(jobId)) {
+    return json(400, { status: 'error', message: 'Missing or invalid jobId.' });
   }
 
   try {
