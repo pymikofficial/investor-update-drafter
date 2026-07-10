@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Investor Update Drafter | cosmik.work</title>
 <meta name="description" content="Raw metrics and bullets in, a polished investor update out, with a numeric sanity check built in. Growth, runway, and headcount change are computed in code, never guessed by the AI.">
+<link rel="canonical" href="https://investor-update-drafter.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Investor Update Drafter | cosmik.work">
+<meta property="og:description" content="Raw metrics and bullets in, a polished investor update out, with a numeric sanity check built in. Growth, runway, and headcount change are computed in code, never guessed by the AI.">
+<meta property="og:url" content="https://investor-update-drafter.netlify.app/">
+<meta property="og:image" content="https://cosmik.work/img/cosmikwork_broad_logo.webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Investor Update Drafter | cosmik.work">
+<meta name="twitter:description" content="Raw metrics and bullets in, a polished investor update out, with a numeric sanity check built in. Growth, runway, and headcount change are computed in code, never guessed by the AI.">
+<meta name="twitter:image" content="https://cosmik.work/img/cosmikwork_broad_logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -77,6 +87,9 @@ h1 em{font-style:italic;color:var(--accent-bright);}
 .field input::placeholder{color:#83838f;}
 
 .field-full{margin-top:20px;}
+.char-count{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text-2);text-align:right;margin-top:6px;}
+.char-count.warn{color:var(--warn);}
+.char-count.over{color:var(--rec);}
 .field-full label{
   display:block;font-family:'JetBrains Mono',monospace;font-size:11px;
   letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
@@ -204,6 +217,12 @@ footer a{color:var(--accent-bright);text-decoration:none;}
 footer a:hover{text-decoration:underline;}
 
 :focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px;}
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:100;
+  background:var(--accent);color:#fff;padding:12px 20px;border-radius:0 0 10px 0;
+  font-family:'JetBrains Mono',monospace;font-size:12px;text-decoration:none;
+}
+.skip-link:focus{left:0;}
 
 @media(max-width:640px){
   .update-band,.update-section{padding:20px 20px;}
@@ -213,7 +232,9 @@ footer a:hover{text-decoration:underline;}
 </head>
 <body>
 
-<main>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<main id="main">
   <p class="eyebrow">cosmik.work · 07 · Founder Ops</p>
   <h1>Real numbers, <em>never guessed.</em></h1>
   <p class="sub">Raw metrics and bullets in, a polished investor update out. Growth, runway, and headcount change are computed in plain code before the AI ever sees them, then dropped into the draft as fixed values it cannot rewrite.</p>
@@ -222,38 +243,40 @@ footer a:hover{text-decoration:underline;}
     <div class="field-grid">
       <div class="field">
         <label for="currentMRR">Current MRR ($)</label>
-        <input type="number" id="currentMRR" min="0" step="any" placeholder="52000">
+        <input type="number" id="currentMRR" min="0" max="1000000000" step="any" placeholder="52000">
       </div>
       <div class="field">
         <label for="previousMRR">Previous MRR ($)</label>
-        <input type="number" id="previousMRR" min="0" step="any" placeholder="45000">
+        <input type="number" id="previousMRR" min="0" max="1000000000" step="any" placeholder="45000">
       </div>
       <div class="field">
         <label for="cashInBank">Cash in bank ($)</label>
-        <input type="number" id="cashInBank" min="0" step="any" placeholder="180000">
+        <input type="number" id="cashInBank" min="0" max="10000000000" step="any" placeholder="180000">
       </div>
       <div class="field">
         <label for="monthlyBurn">Monthly burn ($)</label>
-        <input type="number" id="monthlyBurn" min="0" step="any" placeholder="22000">
+        <input type="number" id="monthlyBurn" min="0" max="1000000000" step="any" placeholder="22000">
       </div>
       <div class="field">
         <label for="currentHeadcount">Current headcount (optional)</label>
-        <input type="number" id="currentHeadcount" min="0" step="1" placeholder="15">
+        <input type="number" id="currentHeadcount" min="0" max="1000000" step="1" placeholder="15">
       </div>
       <div class="field">
         <label for="previousHeadcount">Previous headcount (optional)</label>
-        <input type="number" id="previousHeadcount" min="0" step="1" placeholder="12">
+        <input type="number" id="previousHeadcount" min="0" max="1000000" step="1" placeholder="12">
       </div>
     </div>
 
     <div class="field-full">
       <label for="wins">Key wins/updates this period</label>
-      <textarea id="wins" placeholder="Closed the Acme enterprise deal, shipped the v2 onboarding flow, hired a senior engineer, churn dropped after the pricing change..."></textarea>
+      <textarea id="wins" maxlength="4000" placeholder="Closed the Acme enterprise deal, shipped the v2 onboarding flow, hired a senior engineer, churn dropped after the pricing change..."></textarea>
+      <p class="char-count" id="winsCount" aria-live="polite">0 / 4000</p>
     </div>
 
     <div class="field-full">
       <label for="ask">Ask for investors (optional)</label>
-      <textarea id="ask" placeholder="Intros to enterprise security buyers, help closing the Series A lead, a referral for a senior sales hire..."></textarea>
+      <textarea id="ask" maxlength="4000" placeholder="Intros to enterprise security buyers, help closing the Series A lead, a referral for a senior sales hire..."></textarea>
+      <p class="char-count" id="askCount" aria-live="polite">0 / 4000</p>
     </div>
 
     <div class="tone-toggle" role="group" aria-label="Tone">
@@ -311,6 +334,18 @@ footer a:hover{text-decoration:underline;}
   const fields = ['currentMRR', 'previousMRR', 'cashInBank', 'monthlyBurn', 'currentHeadcount', 'previousHeadcount'];
   const winsEl = document.getElementById('wins');
   const askEl = document.getElementById('ask');
+  const winsCount = document.getElementById('winsCount');
+  const askCount = document.getElementById('askCount');
+  winsEl.addEventListener('input', () => {
+    const n = winsEl.value.length;
+    winsCount.textContent = n + ' / 4000';
+    winsCount.className = 'char-count' + (n >= 4000 ? ' over' : n >= 3600 ? ' warn' : '');
+  });
+  askEl.addEventListener('input', () => {
+    const n = askEl.value.length;
+    askCount.textContent = n + ' / 4000';
+    askCount.className = 'char-count' + (n >= 4000 ? ' over' : n >= 3600 ? ' warn' : '');
+  });
   const toneFormalBtn = document.getElementById('toneFormal');
   const toneCasualBtn = document.getElementById('toneCasual');
 
@@ -342,7 +377,12 @@ footer a:hover{text-decoration:underline;}
       const t = b.textContent;
       b.textContent = 'Copied ✓';
       setTimeout(() => { b.textContent = t; }, 1500);
-    } catch (e) {}
+    } catch (e) {
+      const b = document.getElementById('copyBtn');
+      const t = b.textContent;
+      b.textContent = 'Copy failed — select the text manually';
+      setTimeout(() => { b.textContent = t; }, 2500);
+    }
   });
 
   async function start(){
@@ -353,6 +393,13 @@ footer a:hover{text-decoration:underline;}
 
     if (!wins || values.currentMRR === '' || values.previousMRR === '' || values.cashInBank === '' || values.monthlyBurn === '') {
       setStatus('Current MRR, previous MRR, cash in bank, monthly burn, and wins are all required.', true);
+      return;
+    }
+
+    const invalidField = fields.find((f) => !document.getElementById(f).checkValidity());
+    if (invalidField) {
+      setStatus('Check the numbers, one of them is negative or unreasonably large.', true);
+      document.getElementById(invalidField).focus();
       return;
     }
 
