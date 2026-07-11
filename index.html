@@ -381,7 +381,7 @@ footer a:hover{text-decoration:underline;}
     } catch (e) {
       const b = document.getElementById('copyBtn');
       const t = b.textContent;
-      b.textContent = 'Copy failed — select the text manually';
+      b.textContent = 'Copy failed: select the text manually';
       setTimeout(() => { b.textContent = t; }, 2500);
     }
   });
